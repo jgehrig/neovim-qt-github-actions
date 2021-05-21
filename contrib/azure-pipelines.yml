@@ -1,4 +1,16 @@
+variables:
+- name: CLANG_FORMAT_DIFF
+  value: /usr/share/clang/clang-format-12/clang-format-diff.py
+
 jobs:
+  - job: Code_Format_Validation
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+    - script: |
+        contrib/clang-format-diff.sh
+      displayName: Clang Format Diff
+
   - job: Linux_GCC
     pool:
       vmImage: 'ubuntu-latest'
