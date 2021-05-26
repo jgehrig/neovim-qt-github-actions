@@ -1,0 +1,138 @@
+name: Build_Test
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  BuildTest:
+    name: ${{ matrix.name }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Linux_GCC
+            cc: gcc
+            flavor: Debug
+            runner: ubuntu-latest
+            generator: Ninja
+#          - name: Linux_Clang
+#            cc: clang
+#            flavor: Debug
+#            runner: ubuntu-latest
+#            generator: Ninja
+          - name: MacOS_GCC
+            cc: gcc
+            flavor: Debug
+            runner: macos-latest
+            generator: Ninja
+#          - name: MacOS_Clang
+#            cc: clang
+#            flavor: Debug
+#            runner: macos-latest
+#            generator: Ninja
+          - name: Windows_MSVC
+            cc: msvc
+            flavor: Debug
+            runner: windows-latest
+            generator: Visual Studio 16 2019
+            qt: 5.15.2
+          - name: Windows_MingGW
+            cc: mingw
+            flavor: Debug
+            runner: windows-latest
+            generator: MinGW Makefiles
+            qt: 5.15.2
+    runs-on: ${{ matrix.runner }}
+    #    env:
+    #      CC: ${{ matrix.cc }}
+    #      CXX: ${{ matrix.cc }}
+    steps:
+      - uses: actions/checkout@v2
+
+
+      #
+      # Linux-Specific Environment Setup
+      #
+      - name: Linux - Setup
+        if: ${{ startsWith(matrix.runner, 'ubuntu') }}
+        run: |
+          sudo apt-get install -y neovim ninja-build libqt5svg5 libqt5svg5-dev qt5-default
+          sudo apt-get update -y
+
+
+      #
+      # MacOS-Specific Environment Setup
+      #
+      - name: MacOS - Setup
+        if: ${{ startsWith(matrix.runner, 'macos') }}
+        run: |
+          brew install neovim
+          brew ls --formula | grep -wq ninja || brew install ninja
+          brew ls --formula | grep -wq qt5 || brew install qt5
+          brew ls --formula | grep -wq msgpack || brew install msgpack
+          brew update
+
+
+      #
+      # Windows-Specific Environment Setup
+      #
+      - name: Windows - Setup
+        if: ${{ startsWith(matrix.runner, 'windows') }}
+        run: |
+          New-Item -Path ${{ github.workspace }}\build -Name "build" -ItemType "directory"
+          Invoke-WebRequest https://github.com/neovim/neovim/releases/download/nightly/nvim-win64.zip -OutFile nvim-win64.zip
+          Expand-Archive -Path nvim-win64.zip -DestinationPath ${{ github.workspace }}\build\
+          Add-Content -Path $env:GITHUB_PATH -Value ${{ github.workspace }}\build\Neovim\bin\
+
+      - name: Windows - Install MinGW Qt
+        if: ${{ startsWith(matrix.runner, 'windows') && matrix.cc == 'mingw' }}
+        env:
+          QT_DIR: ${{ github.workspace }}\${{ matrix.qt }}\mingw81_64
+        run: |
+          pip install aqtinstall
+          python -m aqt install ${{ matrix.qt }} windows desktop win64_mingw81
+          Add-Content -Path $env:GITHUB_ENV -Value "CMAKE_PREFIX_PATH=$env:QT_DIR;$env:QT_DIR\lib\cmake"
+          Add-Content -Path $env:GITHUB_PATH -Value "${{ env.qt_dir }}"
+          Add-Content -Path $env:GITHUB_PATH -Value "${{ env.qt_dir }}\bin"
+
+      - name: Windows - Install MSVC Qt
+        if: ${{ startsWith(matrix.runner, 'windows') && matrix.cc == 'msvc' }}
+        env:
+          QT_DIR: ${{ github.workspace }}\${{ matrix.qt }}\msvc2019_64
+        run: |
+          pip install aqtinstall
+          python -m aqt install ${{ matrix.qt }} windows desktop win64_msvc2019_64
+          Add-Content -Path $env:GITHUB_ENV -Value "CMAKE_PREFIX_PATH=$env:QT_DIR;$env:QT_DIR\lib\cmake"
+          Add-Content -Path $env:GITHUB_PATH -Value "${{ env.qt_dir }}"
+          Add-Content -Path $env:GITHUB_PATH -Value "${{ env.qt_dir }}\bin"
+
+      #
+      # Cross-Platform Build + Test
+      #
+      - name: Neovim Version
+        run: nvim --version
+
+      - name: Configure
+        env:
+          CMAKE_BUILD_TYPE: ${{ matrix.flavor }}
+          CMAKE_GENERATOR: ${{ matrix.generator }}
+        run: |
+          echo $Env:Path
+          cmake -B ${{ github.workspace }}/build
+
+      - name: Build
+        run: cmake --build ${{ github.workspace }}/build
+
+      # XVFB is required on Linux, the runner has no X11 $DISPLAY
+      - name: Test
+        uses: GabrielBB/xvfb-action@v1
+        with:
+          working-directory: ${{github.workspace}}/build
+          run: ctest -VV -C ${{ matrix.flavor }}
+
+      - name: Publish
+        if : ${{ matrix.publish }}
+        run: echo "TODO!"

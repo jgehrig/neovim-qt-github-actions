@@ -1,0 +1,59 @@
+name: Linter
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  Clazy:
+    name: Qt_Clazy
+    strategy:
+      fail-fast: false
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup Neovim PPA
+        run: sudo add-apt-repository -y ppa:neovim-ppa/unstable
+
+      - name: Update
+        run: sudo apt-get update -y
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get install -y clazy libqt5svg5-dev neovim ninja-build qt5-default
+
+      - name: Configure
+        run: cmake -B ${{ github.workspace }}/build -GNinja -DCMAKE_BUILD_TYPE=Debug -DENABLE_CLAZY=1 -DCMAKE_CXX_COMPILER=clazy
+
+      - name: Build
+        run: cmake --build ${{ github.workspace }}/build
+
+  CodeCov:
+    name: Upload_CodeCov
+    strategy:
+      fail-fast: false
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup Neovim PPA
+        run: sudo add-apt-repository -y ppa:neovim-ppa/unstable
+
+      - name: Update
+        run: sudo apt-get update -y
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get install -y cmake libqt5svg5 libqt5svg5-dev neovim python3-dev python3-jinja2 python3-msgpack python3-pip qt5-default
+          sudo apt-get install -y lcov
+
+
+      - name: Build
+        run: |
+          mkdir build
+          cd build
+          cmake -DCMAKE_BUILD_TYPE=Debug -DUSE_GCOV=ON ..
+          cmake --build . -- VERBOSE=1
