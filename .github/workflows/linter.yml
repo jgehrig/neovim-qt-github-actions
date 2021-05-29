@@ -44,6 +44,7 @@ jobs:
           git status
           git diff
           git log
+          git log -p
           echo "TODO Check in the changes!"
 
       - name: Check Validity
