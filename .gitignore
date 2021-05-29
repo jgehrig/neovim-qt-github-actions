@@ -1,4 +1,5 @@
 .*
 build/
+clang_format.patch
 src/gui/runtime/doc/tags
 third-party/msgpack*

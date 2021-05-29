@@ -4,6 +4,9 @@
 # from git. Suggests clang-format replacements for any violations within the
 # diff. A patch is generated for the user to apply.
 #
+# ${CLANG_FORMAT_DIFF} - Path to clang-format-diff.py on your system.
+# ${DIFF_FILTER_LIST} - An optional filetype filter list.
+#
 # Path Output: clang_format.patch
 
 # Don't run this script with pending changes! It may modify your files.
@@ -12,7 +15,8 @@ if [ -n "$(git status --porcelain)" ]; then
 	exit 1
 fi
 
-if [ ! -x ${CLANG_FORMAT_DIFF} ]; then
+# The tool clang-format-diff.py does not have a standard location.
+if [ -z ${CLANG_FORMAT_DIFF} ] || [ ! -x ${CLANG_FORMAT_DIFF} ]; then
 	echo "ERROR: Please set CLANG_FORMAT_DIFF and retry"
 
 	# You may find the file at one of the following locations:
@@ -29,25 +33,11 @@ fi
 cp -n contrib/clang-format.txt .clang-format
 
 # Apply all clang-format-diff changes to the working directory
-BRANCH_POINT_SHA=$(git merge-base HEAD remotes/origin/master)
+BRANCH_POINT_SHA=$(git merge-base --fork-point HEAD)
 git diff -U0 --no-color ${BRANCH_POINT_SHA} -- ${DIFF_FILTER_LIST} | ${CLANG_FORMAT_DIFF} -i -p1
 
 # Create patch file of all clang-format suggested changes
 git diff > clang_format.patch
 
-# A non-empty `clang_format.patch` indicates clang-format violations
-if [ -s clang_format.patch ]; then
-	echo "FAIL: Your changes are not clang-format compliant!"
-	echo ""
-	echo "Please inspect and apply clang_format.patch:"
-	echo "  git apply clang_format.patch"
-	echo ""
-	echo "--------------------------------------------------"
-	echo ""
-	cat clang_format.patch
-	exit 1
-fi
-
-echo "PASS: Your changes are clang-format compliant!"
-rm clang_format.patch
-exit 0
+# Remove patch file if empty
+[ -s clang_format.patch ] || rm clang_format.patch

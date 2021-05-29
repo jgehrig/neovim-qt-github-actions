@@ -31,6 +31,63 @@ jobs:
       - name: Build
         run: cmake --build ${{ github.workspace }}/build
 
+
+  ClangFormatDiff:
+    name: ClangFormat
+    strategy:
+      fail-fast: false
+    env:
+      CLANG_FORMAT_DIFF: /usr/share/clang/clang-format-12/clang-format-diff.py
+
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Run ClangFormatDiff Script
+        run: contrib/clang-format-diff.sh
+
+      - name: Detect Code Format Changes
+        run: |
+          if [ -s clang_format.patch ]; then
+            echo "changes_detected=true" >> $GITHUB_ENV
+          else
+            echo "changes_detected=false" >> $GITHUB_ENV
+          fi
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: ClangFormat Patch
+          path: clang_format.patch
+          if-no-files-found: ignore
+
+      - name: Auto-Commit Changes
+        if: ${{ contains(github.event.pull_request.labels.*.name, 'auto-commit') }}
+        run: |
+          git status
+          git diff
+          echo "TODO Check in the changes!"
+
+      - name: Check Validity
+        run: |
+          if [ -s clang_format.patch ]; then
+            echo "FAIL: Your changes are not clang-format compliant!"
+            echo ""
+            echo "Please inspect and apply clang_format.patch:"
+            echo "  git apply clang_format.patch"
+            echo ""
+            echo "Alternatively: Add Label \"auto-commit\" to your"
+            echo "  Pull Request to automatically apply the changes"
+            echo ""
+            echo "--------------------------------------------------"
+            echo ""
+            cat clang_format.patch
+            exit 1
+          fi
+          echo "PASS: Your changes are clang-format compliant!"
+
   CodeCov:
     name: Upload_CodeCov
     strategy:
