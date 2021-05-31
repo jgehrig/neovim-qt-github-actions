@@ -29,12 +29,15 @@ if [ -z ${DIFF_FILTER_LIST} ]; then
 	DIFF_FILTER_LIST="*.cpp *.c *.h"
 fi
 
+if [ -z ${BRANCH_POINT} ]; then
+	BRANCH_POINT=$(git merge-base --fork-point ${BRANCH_POINT})
+fi
+
 # Copy `.clang-format`, skipping if one already exists
 cp -n contrib/clang-format.txt .clang-format
 
 # Apply all clang-format-diff changes to the working directory
-BRANCH_POINT_SHA=$(git merge-base --fork-point HEAD)
-git diff -U0 --no-color ${BRANCH_POINT_SHA} -- ${DIFF_FILTER_LIST} | ${CLANG_FORMAT_DIFF} -i -p1
+git diff -U0 --no-color ${BRANCH_POINT} -- ${DIFF_FILTER_LIST} | ${CLANG_FORMAT_DIFF} -i -p1
 
 # Create patch file of all clang-format suggested changes
 git diff > clang_format.patch
