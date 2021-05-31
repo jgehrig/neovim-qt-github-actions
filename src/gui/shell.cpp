@@ -240,50 +240,50 @@ void Shell::setAttached(bool attached)
 
 void Shell::init()
 {
-	// Make sure the connector provides us with an api object
-	if (!m_nvim || !m_nvim->api0()) {
-		emit neovimIsUnsupported();
-		return;
-	}
-
-	connect(m_nvim->api0(), &NeovimApi0::neovimNotification,
-			this, &Shell::handleNeovimNotification);
-	connect(m_nvim->api0(), &NeovimApi0::on_ui_try_resize,
-			this, &Shell::neovimResizeFinished);
-
-	QRect screenRect = QApplication::desktop()->availableGeometry(this);
-	int64_t width = screenRect.width()*0.66/cellSize().width();
-	int64_t height = screenRect.height()*0.66/cellSize().height();
-	QVariantMap options;
-	if (m_options.IsTablineEnabled()) {
-		options.insert("ext_tabline", true);
-	}
-	if (m_options.IsPopupmenuEnabled()) {
-		options.insert("ext_popupmenu", true);
-	}
-	if (m_options.IsLineGridEnabled()
-		&& m_nvim->hasUIOption("ext_linegrid")) {
-		// Modern Grid UI API is optionally enabled via cmdline
-		options.insert("ext_linegrid", true);
-	}
-	options.insert("rgb", true);
-
-	MsgpackRequest *req;
-	if (m_nvim->api2()) {
-		req = m_nvim->api2()->nvim_ui_attach(width, height, options);
-	} else {
-		req = m_nvim->api0()->ui_attach(width, height, true);
-	}
-	connect(req, &MsgpackRequest::timeout,
-			m_nvim, &NeovimConnector::fatalTimeout);
-	// FIXME grab timeout from connector
-	req->setTimeout(10000);
-
-	connect(req, &MsgpackRequest::finished,
-			this, &Shell::setAttached);
-
-	// Subscribe to GUI events
-	m_nvim->api0()->vim_subscribe("Gui");
+ 	// Make sure the connector provides us with an api object
+ 	if (!m_nvim || !m_nvim->api0()) {
+ 		emit neovimIsUnsupported();
+ 		return;
+ 	}
+ 
+ 	connect(m_nvim->api0(), &NeovimApi0::neovimNotification,
+ 			this, &Shell::handleNeovimNotification);
+ 	connect(m_nvim->api0(), &NeovimApi0::on_ui_try_resize,
+ 			this, &Shell::neovimResizeFinished);
+ 
+ 	QRect screenRect = QApplication::desktop()->availableGeometry(this);
+ 	int64_t width = screenRect.width()*0.66/cellSize().width();
+ 	int64_t height = screenRect.height()*0.66/cellSize().height();
+ 	QVariantMap options;
+ 	if (m_options.IsTablineEnabled()) {
+ 		options.insert("ext_tabline", true);
+ 	}
+ 	if (m_options.IsPopupmenuEnabled()) {
+ 		options.insert("ext_popupmenu", true);
+ 	}
+ 	if (m_options.IsLineGridEnabled()
+ 		&& m_nvim->hasUIOption("ext_linegrid")) {
+ 		// Modern Grid UI API is optionally enabled via cmdline
+ 		options.insert("ext_linegrid", true);
+ 	}
+ 	options.insert("rgb", true);
+ 
+ 	MsgpackRequest *req;
+ 	if (m_nvim->api2()) {
+ 		req = m_nvim->api2()->nvim_ui_attach(width, height, options);
+ 	} else {
+ 		req = m_nvim->api0()->ui_attach(width, height, true);
+ 	}
+ 	connect(req, &MsgpackRequest::timeout,
+ 			m_nvim, &NeovimConnector::fatalTimeout);
+ 	// FIXME grab timeout from connector
+ 	req->setTimeout(10000);
+ 
+ 	connect(req, &MsgpackRequest::finished,
+ 			this, &Shell::setAttached);
+ 
+ 	// Subscribe to GUI events
+ 	m_nvim->api0()->vim_subscribe("Gui");
 }
 
 void Shell::neovimError(NeovimConnector::NeovimError err)
@@ -294,10 +294,10 @@ void Shell::neovimError(NeovimConnector::NeovimError err)
 /** The Neovim process has exited */
 void Shell::neovimExited(int status)
 {
-	setAttached(false);
-	if (status == 0 && m_nvim->errorCause() == NeovimConnector::NoError) {
-		close();
-	}
+    	setAttached(false);
+    	if (status == 0 && m_nvim->errorCause() == NeovimConnector::NoError) {
+    		close();
+    	}
 }
 
 /// Neovim requested a resize
@@ -306,15 +306,15 @@ void Shell::neovimExited(int status)
 /// - reset the cursor, scroll_region
 void Shell::handleResize(uint64_t n_cols, uint64_t n_rows)
 {
-	m_cursor_pos = QPoint(0,0);
-	resizeShell(n_rows, n_cols);
-	m_scroll_region = QRect(QPoint(0,0), QPoint(n_cols, n_rows));
-	if (isWindow()) {
-		// Never call resize on a maximized window
-		// QTBUG-45806
-		resizeNeovim(size());
-	}
-	emit neovimResized(rows(), columns());
+  	m_cursor_pos = QPoint(0,0);
+  	resizeShell(n_rows, n_cols);
+  	m_scroll_region = QRect(QPoint(0,0), QPoint(n_cols, n_rows));
+  	if (isWindow()) {
+  		// Never call resize on a maximized window
+  		// QTBUG-45806
+  		resizeNeovim(size());
+  	}
+  	emit neovimResized(rows(), columns());
 }
 
 void Shell::handleHighlightSet(const QVariantMap& attrs)
