@@ -27,8 +27,8 @@ jobs:
 
       - name: Configure
         run: >
-          cmake -B ${{ github.workspace }}/build -GNinja -DCMAKE_BUILD_TYPE=Debug
-          -DENABLE_CLAZY=1 -DCMAKE_CXX_COMPILER=build/Clazy-x86_64-1.8.AppImage
+          cmake -B ${{ github.workspace }}/build -GNinja -DCMAKE_BUILD_TYPE=Debug -DENABLE_CLAZY=1
+          -DCMAKE_CXX_COMPILER=${{ github.workspace }}/build/Clazy-x86_64-1.8.AppImage
 
       - name: Build
         run: cmake --build ${{ github.workspace }}/build
