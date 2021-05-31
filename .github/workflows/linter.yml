@@ -26,7 +26,7 @@ jobs:
           cd build
           CLAZY_VER=${{ env.CLAZY_VER }}
           CLAZY_BIN=Clazy-x86_64-${{ env.CLAZY_VER }}.AppImage
-          CLAZY_URL=https://downloads.kdab.com/clazy/${CLAZY_VER}/${CLAZY_BIN}}
+          CLAZY_URL=https://downloads.kdab.com/clazy/${CLAZY_VER}/${CLAZY_BIN}
           wget ${CLAZY_URL}
           chmod +x ${CLAZY_BIN}
           echo "CLAZY_BIN=${CLAZY_BIN}" >> $GITHUB_ENV
