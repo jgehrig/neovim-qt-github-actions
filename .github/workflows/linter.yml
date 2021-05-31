@@ -11,6 +11,8 @@ jobs:
     name: Qt_Clazy
     strategy:
       fail-fast: false
+    env:
+      CLAZY_VER: 1.8
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -22,13 +24,18 @@ jobs:
           sudo apt-get update -y
           mkdir build
           cd build
-          wget https://downloads.kdab.com/clazy/1.8/Clazy-x86_64-1.8.AppImage
-          chmod +x Clazy-x86_64-1.8.AppImage
+          CLAZY_VER=${{ env.CLAZY_VER }}
+          CLAZY_BIN=Clazy-x86_64-${{ env.CLAZY_VER }}.AppImage
+          CLAZY_URL=https://downloads.kdab.com/clazy/${CLAZY_VER}/${CLAZY_BIN}}
+          wget ${CLAZY_URL}
+          chmod +x ${CLAZY_BIN}
+          echo "CLAZY_BIN=${CLAZY_BIN}" >> $GITHUB_ENV
+          echo "CLAZY_URL=${CLAZY_URL}" >> $GITHUB_ENV
 
       - name: Configure
         run: >
           cmake -B ${{ github.workspace }}/build -GNinja -DCMAKE_BUILD_TYPE=Debug -DENABLE_CLAZY=1
-          -DCMAKE_CXX_COMPILER=${{ github.workspace }}/build/Clazy-x86_64-1.8.AppImage
+          -DCMAKE_CXX_COMPILER=${{ github.workspace }}/build/${{ env.CLAZY_BIN }}
 
       - name: Build
         run: cmake --build ${{ github.workspace }}/build
@@ -107,8 +114,9 @@ jobs:
             echo "| Consider inspecting and applying 'clang_format.patch':                  |"
             echo "|   git apply clang_format.patch                                          |"
             echo "|                                                                         |"
-            echo "| Alternatively:                                                          |"
-            echo "|  Add Pull Request Label 'auto-commit' to auto-apply the changes.        |"
+            echo "| Alternative Options:                                                    |"
+            echo "|  - Add Pull Request Label 'auto-commit' to auto-apply the changes.      |"
+            echo "|  - Run bash script 'contrib/clang-format-diff.sh' locally.              |"
             echo "|                                                                         |"
             echo "---------------------------------------------------------------------------"
             exit 1
