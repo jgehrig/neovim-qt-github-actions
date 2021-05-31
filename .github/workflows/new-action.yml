@@ -1,0 +1,17 @@
+name: NewAction
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  Clazy:
+    name: DoNothing
+    strategy:
+      fail-fast: false
+    runs-on: ubuntu-latest
+    steps:
+      - name: Hello World
+        run: echo "Hello World"
