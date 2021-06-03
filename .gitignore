@@ -1,4 +1,5 @@
 .*
+!.github/*
 build/
 src/gui/runtime/doc/tags
 third-party/msgpack*
