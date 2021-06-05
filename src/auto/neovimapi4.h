@@ -1,4 +1,4 @@
-// Auto generated 2018-09-04 09:18:09.666239 from nvim API level:4
+// Auto generated 2021-06-05 04:15:53.152160 from nvim API level:4
 #ifndef NEOVIM_QT_NEOVIMAPI4
 #define NEOVIM_QT_NEOVIMAPI4
 #include "msgpack.h"

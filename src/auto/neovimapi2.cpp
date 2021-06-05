@@ -1,4 +1,4 @@
-// Auto generated 2017-10-31 14:35:34.305529 from nvim API level:2
+// Auto generated 2021-06-05 04:14:19.352092 from nvim API level:2
 #include "auto/neovimapi2.h"
 #include "neovimconnector.h"
 #include "msgpackrequest.h"
@@ -4436,4 +4436,4 @@ bool NeovimApi2::checkFunctions(const QVariantList& ftable)
 	return ok;
 }
 
-} // Namespace
+} // Namespace NeovimQt

@@ -164,4 +164,4 @@ bool NeovimApi{{api_level}}::checkFunctions(const QVariantList& ftable)
 	return ok;
 }
 
-} // Namespace
+} // Namespace NeovimQt
